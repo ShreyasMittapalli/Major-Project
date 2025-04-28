@@ -1,5 +1,8 @@
 'use client';
 
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -9,12 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 interface Position {
-  symbol: string;
+  symbol: string;  
   quantity: number;
   averagePrice: number;
   currentPrice: number;

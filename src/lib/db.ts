@@ -1,7 +1,7 @@
 
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://0.0.0.0:27017/algotrade';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://0.0.0.0:27017/algotrade';
 
 export async function connectDB() {
   try {
