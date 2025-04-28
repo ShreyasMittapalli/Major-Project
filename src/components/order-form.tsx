@@ -38,18 +38,8 @@ const orderFormSchema = z.object({
 
 type OrderFormValues = z.infer<typeof orderFormSchema>;
 
-// Mock function to simulate placing an order
-const placeOrder = async (data: OrderFormValues) => {
-  console.log("Placing order:", data);
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  // Simulate success/failure
-  if (Math.random() > 0.1) { // 90% success rate
-    return { success: true, message: `Order to ${data.orderType} ${data.quantity} ${data.ticker} placed successfully!` };
-  } else {
-     throw new Error("Failed to place order. Please try again.");
-  }
-};
+// Mock function to simulate placing an order  (This will be replaced by backend interaction)
+// const placeOrder = async (data: OrderFormValues) => { ... };
 
 
 export function OrderForm() {
@@ -68,18 +58,44 @@ export function OrderForm() {
 
   const priceType = form.watch("priceType"); // Watch the priceType field
 
-  async function onSubmit(data: OrderFormValues) {
-     setIsSubmitting(true);
-    try {
-       // Remove limit price if it's a market order before submission
-       const submissionData = data.priceType === 'market' ? { ...data, limitPrice: undefined } : data;
+  // Mock stock data service (Replace with actual implementation)
+  const stockDataService = {
+    getStockData: async (ticker: string) => {
+      // Replace with actual API call to get stock data
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+      return { ticker, price: Math.random() * 200 + 50 }; // Simulate price
+    },
+  };
 
-      const result = await placeOrder(submissionData);
-      toast({
-        title: "Order Placed",
-        description: result.message,
+
+  async function onSubmit(data: OrderFormValues) {
+    setIsSubmitting(true);
+    try {
+      const stockData = await stockDataService.getStockData(data.ticker);
+      const price = data.priceType === 'market' ? stockData.price : data.limitPrice!;
+
+      const response = await fetch('/api/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: data.ticker,
+          type: data.orderType,
+          quantity: data.quantity,
+          price,
+        }),
       });
-      form.reset(); // Reset form on success
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error);
+      }
+
+      toast({
+        title: "Order Executed",
+        description: `Successfully ${data.orderType} ${data.quantity} shares of ${data.ticker} at $${price.toFixed(2)}`,
+      });
+      form.reset();
     } catch (error: any) {
       toast({
         title: "Order Failed",
@@ -87,7 +103,7 @@ export function OrderForm() {
         variant: "destructive",
       });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -101,7 +117,7 @@ export function OrderForm() {
             <FormItem>
               <FormLabel>Ticker Symbol</FormLabel>
               <FormControl>
-                 {/* TODO: Consider making this a searchable select or autocomplete */}
+                {/* TODO: Consider making this a searchable select or autocomplete */}
                 <Input placeholder="e.g., AAPL" {...field} />
               </FormControl>
               <FormMessage />
@@ -109,7 +125,7 @@ export function OrderForm() {
           )}
         />
 
-         <FormField
+        <FormField
           control={form.control}
           name="orderType"
           render={({ field }) => (
@@ -164,7 +180,7 @@ export function OrderForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Price Type</FormLabel>
-               <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select order price type" />
@@ -200,7 +216,7 @@ export function OrderForm() {
         )}
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Placing Order..." : "Place Order"}
+          {isSubmitting ? "Executing Order..." : "Execute Order"}
         </Button>
       </form>
     </Form>
