@@ -24,7 +24,7 @@ class StockDataService {
   private baseUrl: string;
 
   constructor() {
-    this.apiKey = process.env.ALPHA_VANTAGE_API_KEY || '';
+    this.apiKey = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY || '';
     this.baseUrl = 'https://www.alphavantage.co/query';
   }
 
