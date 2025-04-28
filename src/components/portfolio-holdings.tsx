@@ -10,16 +10,55 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-// Mock data for portfolio holdings
-const holdings = [
-  { ticker: 'AAPL', quantity: 50, avgPrice: 165.00, currentPrice: 175.50 },
-  { ticker: 'MSFT', quantity: 25, avgPrice: 290.50, currentPrice: 305.25 },
-  { ticker: 'NVDA', quantity: 10, avgPrice: 700.00, currentPrice: 780.30 },
-   { ticker: 'GOOGL', quantity: 5, avgPrice: 2750.00, currentPrice: 2850.00 },
-    { ticker: 'TSLA', quantity: 15, avgPrice: 800.00, currentPrice: 750.10 }, // Example of a loss
-];
+'use client';
+
+import { useState, useEffect } from 'react';
+
+interface Position {
+  symbol: string;
+  quantity: number;
+  averagePrice: number;
+  currentPrice: number;
+  totalValue: number;
+  unrealizedPnL: number;
+}
+
+interface Portfolio {
+  positions: Position[];
+  cash: number;
+  totalValue: number;
+}
 
 export function PortfolioHoldings() {
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const response = await fetch('/api/portfolio');
+        const data = await response.json();
+        setPortfolio(data);
+      } catch (error) {
+        console.error('Error fetching portfolio:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPortfolio();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchPortfolio, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return <div>Loading portfolio...</div>;
+  }
+
+  if (!portfolio) {
+    return <div>No portfolio data available.</div>;
+  }
 
   const calculateTotalValue = (holding: typeof holdings[0]) => {
     return holding.quantity * holding.currentPrice;
@@ -48,19 +87,18 @@ export function PortfolioHoldings() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {holdings.map((holding) => {
-           const totalValue = calculateTotalValue(holding);
-           const gainLoss = calculateGainLoss(holding);
-           const gainLossPercent = calculateGainLossPercent(holding);
+        {portfolio.positions.map((position) => {
+           const gainLoss = position.unrealizedPnL;
+           const gainLossPercent = (gainLoss / (position.totalValue - gainLoss)) * 100;
            const isGain = gainLoss >= 0;
 
           return (
           <TableRow key={holding.ticker}>
-            <TableCell className="font-medium">{holding.ticker}</TableCell>
-            <TableCell className="text-right">{holding.quantity}</TableCell>
-            <TableCell className="text-right">${holding.avgPrice.toFixed(2)}</TableCell>
-             <TableCell className="text-right">${holding.currentPrice.toFixed(2)}</TableCell>
-             <TableCell className="text-right">${totalValue.toFixed(2)}</TableCell>
+            <TableCell className="font-medium">{position.symbol}</TableCell>
+            <TableCell className="text-right">{position.quantity}</TableCell>
+            <TableCell className="text-right">${position.averagePrice.toFixed(2)}</TableCell>
+            <TableCell className="text-right">${position.currentPrice.toFixed(2)}</TableCell>
+            <TableCell className="text-right">${position.totalValue.toFixed(2)}</TableCell>
             <TableCell className={`text-right font-medium ${isGain ? 'text-green-600' : 'text-red-600'}`}>
                <div className="flex items-center justify-end gap-1">
                 {isGain ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
