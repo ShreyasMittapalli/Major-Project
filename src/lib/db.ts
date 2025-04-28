@@ -1,13 +1,20 @@
 
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/algotrade';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://0.0.0.0:27017/algotrade';
 
 export async function connectDB() {
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('Connected to MongoDB');
+    if (!mongoose.connection.readyState) {
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        retryWrites: true,
+      });
+      console.log('Connected to MongoDB');
+    }
+    return mongoose.connection;
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    throw error;
   }
 }
