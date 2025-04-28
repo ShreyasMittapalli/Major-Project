@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from '@/components/ui/skeleton';
-import { getStockData, type StockData } from '@/services/stock-data'; // Assuming service exists
+import { stockDataService, type StockData } from '@/services/stock-data';
 import { TrendingUp, TrendingDown, Package } from 'lucide-react';
 
 interface MarketDataDisplayProps {
@@ -22,7 +22,7 @@ export function MarketDataDisplay({ initialTicker = "AAPL" }: MarketDataDisplayP
       setLoading(true);
       setError(null);
       try {
-        const data = await getStockData(selectedTicker);
+        const data = await stockDataService.getStockData(selectedTicker);
         // Simulate price change for visual feedback
         const prevPrice = stockData?.price || data.price;
         setStockData({...data, prevPrice}); // Add prevPrice for comparison
