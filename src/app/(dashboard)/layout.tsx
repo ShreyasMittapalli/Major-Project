@@ -3,10 +3,12 @@ import { CandlestickChart, Bot, Settings, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardHeader } from '@/components/dashboard-header';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col min-h-svh">
+    <SidebarProvider>
+      <div className="flex flex-col min-h-svh">
       <div className="border-b">
         <div className="flex h-16 items-center px-4 gap-4">
           <div className="flex items-center gap-2">
@@ -48,5 +50,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
+    </SidebarProvider>
   );
 }
